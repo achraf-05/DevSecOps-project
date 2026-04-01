@@ -1,7 +1,3 @@
-# Dépendances de l'application
-# NOTE : Versions intentionnellement anciennes pour illustrer les vulnérabilités
-# détectées par Trivy dans le cadre du TP DevSecOps.
-
 flask==2.0.1
 Werkzeug==2.0.1
 requests==2.25.1

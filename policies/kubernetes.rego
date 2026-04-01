@@ -1,20 +1,4 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# Politique de sécurité Kubernetes – Conftest / Rego
-# Réalisé par : Achraf CHERGUI
-#
-# Ce fichier définit les règles de sécurité appliquées aux manifestes Kubernetes
-# via Conftest. Un `deny` fait échouer le pipeline ; un `warn` est informatif.
-#
-# Exécution manuelle :
-#   conftest test k8s/ --policy policies/
-# ─────────────────────────────────────────────────────────────────────────────
-
 package main
-
-# ─── Règle 1 : runAsNonRoot obligatoire ──────────────────────────────────────
-# Un pod ne doit pas pouvoir s'exécuter en tant qu'utilisateur root (UID 0).
-# Impact : si un attaquant compromet le conteneur, il obtient des droits root
-# sur le nœud via une évasion de conteneur.
 
 deny[msg] {
   input.kind == "Deployment"
@@ -30,11 +14,6 @@ container_runs_as_non_root(container) {
   container.securityContext.runAsNonRoot == true
 }
 
-# ─── Règle 2 : Limites de ressources obligatoires ────────────────────────────
-# Chaque conteneur doit définir resources.limits (CPU + mémoire).
-# Impact : sans limites, un conteneur défaillant peut consommer toutes les
-# ressources du nœud (Denial of Service).
-
 deny[msg] {
   input.kind == "Deployment"
   container := input.spec.template.spec.containers[_]
@@ -44,9 +23,6 @@ deny[msg] {
     [container.name]
   )
 }
-
-# ─── Règle 3 : Interdire le mode privilégié ──────────────────────────────────
-# Un conteneur privilégié a accès au nœud hôte avec des droits quasi-root.
 
 deny[msg] {
   input.kind == "Deployment"
@@ -58,8 +34,6 @@ deny[msg] {
   )
 }
 
-# ─── Règle 4 : allowPrivilegeEscalation doit être false ──────────────────────
-
 deny[msg] {
   input.kind == "Deployment"
   container := input.spec.template.spec.containers[_]
@@ -70,15 +44,12 @@ deny[msg] {
   )
 }
 
-# ─── Avertissement 1 : Tag ':latest' déconseillé ─────────────────────────────
-# Utiliser ':latest' rend les déploiements non reproductibles.
-
 warn[msg] {
   input.kind == "Deployment"
   container := input.spec.template.spec.containers[_]
   endswith(container.image, ":latest")
   msg := sprintf(
-    "[WARN][tag-latest] Le conteneur '%v' utilise le tag ':latest' — préférer un tag immuable (ex: sha256 ou version sémantique)",
+    "[WARN][tag-latest] Le conteneur '%v' utilise le tag ':latest' — préférer un tag immuable",
     [container.name]
   )
 }
@@ -92,8 +63,6 @@ warn[msg] {
     [container.name]
   )
 }
-
-# ─── Avertissement 2 : readOnlyRootFilesystem recommandé ─────────────────────
 
 warn[msg] {
   input.kind == "Deployment"

@@ -1,16 +1,3 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# Pipeline CI/CD DevSecOps – GitHub Actions
-# Réalisé par : Achraf CHERGUI
-#
-# Jobs :
-#   1. build            – Construction de l'image Docker
-#   2. lint-dockerfile  – Analyse statique du Dockerfile (Hadolint)
-#   3. lint-yaml        – Lint des manifestes YAML Kubernetes (yamllint)
-#   4. trivy-deps       – Scan des dépendances Python (Trivy FS)
-#   5. trivy-container  – Scan de l'image Docker (Trivy)
-#   6. conftest         – Vérification des politiques de sécurité K8s (Rego)
-# ─────────────────────────────────────────────────────────────────────────────
-
 name: DevSecOps CI Pipeline
 
 on:
@@ -28,9 +15,6 @@ env:
 
 jobs:
 
-  # ───────────────────────────────────────────────────────────────────────────
-  # JOB 1 : Build de l'image Docker
-  # ───────────────────────────────────────────────────────────────────────────
   build:
     name: "[1/6] Build Docker Image"
     runs-on: ubuntu-latest
@@ -62,9 +46,6 @@ jobs:
           path: image.tar
           retention-days: 1
 
-  # ───────────────────────────────────────────────────────────────────────────
-  # JOB 2 : Lint du Dockerfile (Hadolint)
-  # ───────────────────────────────────────────────────────────────────────────
   lint-dockerfile:
     name: "[2/6] Lint Dockerfile (Hadolint)"
     runs-on: ubuntu-latest
@@ -80,9 +61,6 @@ jobs:
           config: .hadolint.yaml
           failure-threshold: error
 
-  # ───────────────────────────────────────────────────────────────────────────
-  # JOB 3 : Lint des fichiers YAML Kubernetes (yamllint)
-  # ───────────────────────────────────────────────────────────────────────────
   lint-yaml:
     name: "[3/6] Lint YAML Kubernetes (yamllint)"
     runs-on: ubuntu-latest
@@ -98,9 +76,6 @@ jobs:
           file_or_dir: k8s/
           strict: false
 
-  # ───────────────────────────────────────────────────────────────────────────
-  # JOB 4 : Scan des dépendances avec Trivy (filesystem)
-  # ───────────────────────────────────────────────────────────────────────────
   trivy-deps:
     name: "[4/6] Trivy – Scan Dépendances"
     runs-on: ubuntu-latest
@@ -134,13 +109,11 @@ jobs:
       - name: Upload résultats Trivy FS vers GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: trivy-fs-results.sarif
           category: trivy-filesystem
 
-  # ───────────────────────────────────────────────────────────────────────────
-  # JOB 5 : Scan de l'image Docker avec Trivy
-  # ───────────────────────────────────────────────────────────────────────────
   trivy-container:
     name: "[5/6] Trivy – Scan Image Docker"
     runs-on: ubuntu-latest
@@ -181,6 +154,7 @@ jobs:
       - name: Upload résultats Trivy image vers GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: trivy-image-results.sarif
           category: trivy-container
@@ -195,9 +169,6 @@ jobs:
           severity: CRITICAL
           ignore-unfixed: true
 
-  # ───────────────────────────────────────────────────────────────────────────
-  # JOB 6 : Vérification des politiques de sécurité Kubernetes (Conftest/Rego)
-  # ───────────────────────────────────────────────────────────────────────────
   conftest:
     name: "[6/6] Conftest – Politique Sécurité K8s"
     runs-on: ubuntu-latest
@@ -209,7 +180,6 @@ jobs:
       - name: Installation de Conftest
         run: |
           CONFTEST_VERSION="0.50.0"
-          echo "Installation de Conftest v${CONFTEST_VERSION}..."
           wget -q "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz"
           tar xzf "conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz"
           sudo mv conftest /usr/local/bin/
@@ -217,11 +187,6 @@ jobs:
 
       - name: Conftest – Vérification des manifestes Kubernetes
         run: |
-          echo "============================================================"
-          echo "  Vérification des politiques de sécurité Kubernetes"
-          echo "  Politiques : policies/kubernetes.rego"
-          echo "  Manifestes : k8s/"
-          echo "============================================================"
           conftest test k8s/deployment.yaml k8s/service.yaml \
             --policy policies/ \
             --output stdout \
