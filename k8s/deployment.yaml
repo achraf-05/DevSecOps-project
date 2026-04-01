@@ -1,0 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Deployment Kubernetes – DevSecOps TP
+#
+# NOTE PÉDAGOGIQUE :
+#   Ce manifeste viole intentionnellement les politiques de sécurité définies
+#   dans policies/kubernetes.rego afin d'illustrer le fonctionnement de Conftest.
+#
+#   Violations détectées par Conftest :
+#     1. securityContext.runAsNonRoot non défini → le pod peut s'exécuter en root
+#     2. resources.limits non définis → risque de resource exhaustion
+#     3. Tag ":latest" utilisé → manque de reproductibilité
+#
+#   Pour corriger, décommenter le bloc "# CORRECTION" ci-dessous.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devsecops-api
+  namespace: default
+  labels:
+    app: devsecops-api
+    version: "1.0.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devsecops-api
+  template:
+    metadata:
+      labels:
+        app: devsecops-api
+    spec:
+      containers:
+        - name: api
+          image: devsecops-api:latest   # VIOLATION : tag ':latest'
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "5000"
+          # VIOLATION : pas de securityContext → s'exécute en root
+          # VIOLATION : pas de resources.limits → risque de DoS
+
+          # ── CORRECTION (décommenter pour rendre le manifeste conforme) ──
+          # securityContext:
+          #   runAsNonRoot: true
+          #   runAsUser: 1000
+          #   allowPrivilegeEscalation: false
+          #   readOnlyRootFilesystem: true
+          #   capabilities:
+          #     drop:
+          #       - ALL
+          # resources:
+          #   requests:
+          #     cpu: "100m"
+          #     memory: "128Mi"
+          #   limits:
+          #     cpu: "250m"
+          #     memory: "256Mi"
+          # livenessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: 5000
+          #   initialDelaySeconds: 10
+          #   periodSeconds: 15
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: 5000
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 10

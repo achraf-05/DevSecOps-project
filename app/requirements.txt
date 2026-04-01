@@ -1,0 +1,11 @@
+# Dépendances de l'application
+# NOTE : Versions intentionnellement anciennes pour illustrer les vulnérabilités
+# détectées par Trivy dans le cadre du TP DevSecOps.
+
+flask==2.0.1
+Werkzeug==2.0.1
+requests==2.25.1
+cryptography==36.0.2
+PyYAML==5.4.1
+Pillow==9.1.0
+gunicorn==20.1.0

@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Surveillance des dépendances Python
+  - package-ecosystem: pip
+    directory: "/app"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - "security"
+      - "dependencies"
+
+  # Surveillance des GitHub Actions
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels:
+      - "ci"
+      - "dependencies"

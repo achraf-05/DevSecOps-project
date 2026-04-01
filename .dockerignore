@@ -1,0 +1,13 @@
+.git
+.github
+.gitignore
+*.md
+*.tar
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.env
+.env.*
+policies/
+k8s/

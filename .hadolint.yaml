@@ -1,0 +1,18 @@
+# Configuration Hadolint – Linter Dockerfile
+# Documentation : https://github.com/hadolint/hadolint
+
+failure-threshold: warning
+
+# Règles ignorées pour ce TP pédagogique
+ignore:
+  - DL3008  # apt-get : versions non épinglées (acceptable en TP)
+  - DL3009  # apt-get : pas de rm /var/lib/apt/lists (acceptable en TP)
+
+# Niveau de sévérité personnalisé par règle
+override:
+  error:
+    - DL3002  # Ne pas passer à root dans RUN
+  warning:
+    - DL3006  # Toujours étiqueter FROM avec une version
+    - DL3013  # Épingler les versions pip
+    - DL3025  # CMD en forme exec (JSON)
