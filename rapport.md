@@ -61,16 +61,13 @@ Le scan du fichier `requirements.txt` a révélé plusieurs vulnérabilités sur
 | Werkzeug | 2.0.1 | CVE-2023-25577 | **HIGH** | Déni de service via parsing multipart/form-data |
 | requests | 2.25.1 | CVE-2023-32681 | **MEDIUM** | Fuite du header `Proxy-Authorization` lors d'une redirection |
 
-> **Capture d'écran 1** : Résultats du job `[4/6] Trivy – Scan Dépendances` dans GitHub Actions
-> *(insérer capture du log Trivy FS ici)*
+
 
 ### 3.2 Scan de l'image Docker – Trivy Image
 
 En plus des vulnérabilités applicatives, le scan de l'image `python:3.9` (image de base non-slim)
 a mis en évidence des CVE supplémentaires au niveau de l'OS et des bibliothèques système embarquées.
 
-> **Capture d'écran 2** : Résultats du job `[5/6] Trivy – Scan Image Docker` dans GitHub Actions
-> *(insérer capture du log Trivy image ici)*
 
 ---
 
@@ -107,11 +104,7 @@ WARN - k8s/deployment.yaml - [WARN][tag-latest] Le conteneur 'api' utilise le ta
 Après correction du manifeste (ajout du `securityContext` complet et des `resources.limits`),
 le job Conftest est passé au vert.
 
-> **Capture d'écran 3** : Job `[6/6] Conftest` en échec (manifeste non conforme)
-> *(insérer capture ici)*
 
-> **Capture d'écran 4** : Job `[6/6] Conftest` en succès (manifeste corrigé)
-> *(insérer capture ici)*
 
 ---
 
